@@ -9,4 +9,8 @@ class Image extends Model
 {
     /** @use HasFactory<\Database\Factories\ImageFactory> */
     use HasFactory;
+
+    function todo(){
+        return $this->belongsTo(Todo::class, "todo_id");
+    }
 }
