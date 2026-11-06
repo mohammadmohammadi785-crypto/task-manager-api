@@ -5,28 +5,34 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request){}
+
+    public function login(Request $request){
         try{
-        $user = User::where('email', $request->email)->where("password", $request->password)->get();
-        $token = $user->createToken()->plainTextRoken();
-        return Response('auth_token')->json([
-            "user"=> $user,
-            "token"=>$token,
-            "message"=> "User Logged In successfully"
-        ]);
-        } catch (Exception $err) {
+            $user = User::where("email", $request->email)->first();
+            if($user && Hash::check($request->password, $user->password)){
+                $token = $user->createToken("auth_token")->plainTextToken;
+                return Response()->json([
+                    "state"=> true,
+                    "message"=> "User logged in successfully",
+                    "user"=> $user,
+                    "token"=> $token,
+                ], 200);
+            };
+        } catch (Exception $err){
             return Response()->json([
-                "user"=>"",
-                "token"=> "",
-                "message"=> $err->getMessage()
-            ]);
+                "state"=> false,
+                "message"=> $err->getMessage(),
+                "user"=> null,
+                "token"=> null,
+            ], 400);
         }
     }
 
@@ -38,13 +44,13 @@ class UserController extends Controller
         $user = User::create([
             "name"=> $request->name,
             "email"=> $request->email,
-            "password"=> $request->password,
+            "password"=> Hash::make($request->password),
         ]);
         $token = $user->createToken('auth_token')->plainTextToken();
         return Response()->json([
             "user"=>$user,
             "token"=>$token
-        ]);
+        ], 200);
     }
 
     /**
