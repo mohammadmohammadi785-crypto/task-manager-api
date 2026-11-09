@@ -10,4 +10,4 @@ Route::get('/user', function (Request $request) {
 
 Route::apiResource("/new-user", UserController::class);
 
-Route::post("/login", [UserController::class, "login"]);
+Route::post("/login", [UserController::class, "login"]); 

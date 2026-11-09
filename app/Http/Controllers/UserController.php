@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -15,25 +16,40 @@ class UserController extends Controller
     public function index(Request $request){}
 
     public function login(Request $request){
-        try{
-            $user = User::where("email", $request->email)->first();
-            if($user && Hash::check($request->password, $user->password)){
-                $token = $user->createToken("auth_token")->plainTextToken;
-                return Response()->json([
-                    "state"=> true,
-                    "message"=> "User logged in successfully",
-                    "user"=> $user,
-                    "token"=> $token,
-                ], 200);
-            };
-        } catch (Exception $err){
+        if(!Auth::attempt($request->only("email", "password"))){
             return Response()->json([
                 "state"=> false,
-                "message"=> $err->getMessage(),
-                "user"=> null,
-                "token"=> null,
-            ], 400);
+                "mesage"=> "In valid email or password"
+            ]);
         }
+        $user = User::where("email", $request->email)->first();
+        $token = $user->createToken("auth_token")->plainTextToken;
+        return Response()->json([
+            "state"=> true,
+            "message"=> "User logged in successfully",
+            "user"=> $user,
+            "token"=> $token,   
+        ], 200);
+        
+        // try{
+        //     $user = User::where("email", $request->email)->first();
+        //     if($user && Hash::check($request->password, $user->password)){
+        //         $token = $user->createToken("auth_token")->plainTextToken;
+        //         return Response()->json([
+        //             "state"=> true,
+        //             "message"=> "User logged in successfully",
+        //             "user"=> $user,
+        //             "token"=> $token,
+        //         ], 200);
+        //     };
+        // } catch (Exception $err){
+        //     return Response()->json([
+        //         "state"=> false,
+        //         "message"=> $err->getMessage(),
+        //         "user"=> null,
+        //         "token"=> null,
+        //     ], 400); 
+        // }
     }
 
     /**
